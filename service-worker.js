@@ -5,7 +5,7 @@
    - Provide offline fallback for navigation
 */
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `packpuss-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `packpuss-runtime-${CACHE_VERSION}`;
 const IMAGE_CACHE = `packpuss-images-${CACHE_VERSION}`;
@@ -44,8 +44,9 @@ self.addEventListener('activate', event => {
     (async () => {
       const keys = await caches.keys();
       await Promise.all(
-        keys.filter(k => ![CACHE_NAME, RUNTIME_CACHE, IMAGE_CACHE].includes(k))
-            .map(k => caches.delete(k))
+        keys
+          .filter(k => ![CACHE_NAME, RUNTIME_CACHE, IMAGE_CACHE].includes(k))
+          .map(k => caches.delete(k))
       );
       await self.clients.claim();
     })()
@@ -55,6 +56,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const request = event.request;
 
+  // Navigation requests → network first, offline fallback
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -63,13 +65,16 @@ self.addEventListener('fetch', event => {
           caches.open(RUNTIME_CACHE).then(cache => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match(request).then(r => r || caches.match('/PackPuss2.0/offline.html')))
+        .catch(() =>
+          caches.match(request).then(r => r || caches.match('/PackPuss2.0/offline.html'))
+        )
     );
     return;
   }
 
   const url = new URL(request.url);
 
+  // Images → cache-first with runtime fill
   if (request.destination === 'image' || /\.(png|jpg|jpeg|svg|gif)$/.test(url.pathname)) {
     event.respondWith(
       caches.open(IMAGE_CACHE).then(async cache => {
@@ -90,22 +95,25 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // Other GET requests → cache-first, then network
   event.respondWith(
     caches.match(request).then(cached => {
       if (cached) return cached;
-      return fetch(request).then(response => {
-        return caches.open(RUNTIME_CACHE).then(cache => {
-          if (request.method === 'GET' && response && response.status === 200) {
-            cache.put(request, response.clone());
+      return fetch(request)
+        .then(response =>
+          caches.open(RUNTIME_CACHE).then(cache => {
+            if (request.method === 'GET' && response && response.status === 200) {
+              cache.put(request, response.clone());
+            }
+            return response;
+          })
+        )
+        .catch(() => {
+          if (request.destination === 'style' || request.destination === 'script') {
+            return caches.match('/PackPuss2.0/index.html');
           }
-          return response;
+          return null;
         });
-      }).catch(() => {
-        if (request.destination === 'style' || request.destination === 'script') {
-          return caches.match('/PackPuss2.0/index.html');
-        }
-        return null;
-      });
     })
   );
 });
