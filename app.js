@@ -157,7 +157,6 @@
       localStorage.removeItem(OVERLAY_DISMISSED_KEY);
       showCountdownIfNeeded();
     });
-
     /* SUGGESTIONS */
     const SUGGESTIONS = {
       'Clothing': ['T-shirts','Shorts','Underwear','Socks','Swimwear','Pyjamas','Light jacket','Flip flops','Sandals','Trainers','Dress','Skirt','Jeans','Sun hat','Belt','Evening outfit','Raincoat','Hoodie'],
@@ -227,8 +226,8 @@
       if (!trip) return;
 
       const nameNorm = nameRaw.toLowerCase();
-
       const existing = buildCategoryList(trip).map(c => c.toLowerCase());
+
       if (existing.includes(nameNorm)) {
         alert('That category already exists');
         newCategoryInput.value = '';
@@ -420,7 +419,6 @@
       progressFill.style.width = `${pct}%`;
       progressLabel.textContent = `${packed} / ${total} packed`;
     }
-
     /* ONE LIST */
     function renderOneList(filter = 'all'){
       const trip = getCurrentTrip();
@@ -506,8 +504,8 @@
       document.body.classList.add('overlay-blur');
     });
 
+    /* FIXED BLOCK — this was your fatal bug */
     addHolidayCancel.addEventListener('click', () => {
-      addHolidayModal    addHolidayCancel.addEventListener('click', () => {
       addHolidayModal.classList.add('hidden');
       document.body.classList.remove('overlay-blur');
     });
@@ -574,7 +572,6 @@
       copy.createdAt = nowISO();
       copy.items = copy.items.map(i => ({ ...i, id: uid('item') }));
 
-      // Reset the date so user can choose a new one
       copy.date = null;
 
       trips.unshift(copy);
@@ -611,7 +608,7 @@
       render();
     });
 
-    /* EXPORT: JSON or CSV */
+    /* EXPORT */
     function safeFilenamePart(s){
       return (s || '').replace(/[^a-z0-9_\- ]/gi, '').trim().replace(/\s+/g, '-').toLowerCase() || 'holiday';
     }
@@ -672,7 +669,8 @@
         alert('Unsupported format. Please enter "json" or "csv".');
       }
     });
-    /* DELETE HOLIDAY (FOOTER BUTTON) */
+
+    /* DELETE HOLIDAY */
     deleteTripBtnFooter.addEventListener('click', () => {
       if(!confirm('Delete this holiday and all its items?')) return;
 
@@ -700,8 +698,7 @@
 
   /* SERVICE WORKER */
   if ('serviceWorker' in navigator) {
- navigator.serviceWorker.register('/PackPuss2.0/service-worker.js')
-
+    navigator.serviceWorker.register('/PackPuss2.0/service-worker.js')
       .catch(() => {});
   }
 
