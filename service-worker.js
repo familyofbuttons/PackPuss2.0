@@ -5,7 +5,7 @@
    - Provide offline fallback for navigation
 */
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `packpuss-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `packpuss-runtime-${CACHE_VERSION}`;
 const IMAGE_CACHE = `packpuss-images-${CACHE_VERSION}`;
