@@ -73,6 +73,9 @@
     let trips = [];
     let currentTripId = null;
 
+    // Temporary storage used when duplicating: holds items to apply to the new holiday
+    let pendingDuplicateItems = null;
+
     const uid = (p='id') => p + '_' + Math.random().toString(36).slice(2,9);
     const nowISO = () => new Date().toISOString();
     const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({
@@ -505,14 +508,17 @@
 
     /* ADD HOLIDAY MODAL */
     newTripBtn.addEventListener('click', () => {
+      // Clear any pending duplicate items when user chooses to add a fresh holiday
+      pendingDuplicateItems = null;
       modalHolidayName.value = '';
       modalHolidayDate.value = '';
       addHolidayModal.classList.remove('hidden');
       document.body.classList.add('overlay-blur');
     });
 
-    /* FIXED BLOCK — this was your fatal bug */
     addHolidayCancel.addEventListener('click', () => {
+      // Cancel any pending duplicate operation as well
+      pendingDuplicateItems = null;
       addHolidayModal.classList.add('hidden');
       document.body.classList.remove('overlay-blur');
     });
@@ -526,12 +532,20 @@
         return;
       }
 
+      // If there are pending duplicate items, use them; otherwise create an empty list
       const t = createTrip(name, date);
+      if (Array.isArray(pendingDuplicateItems) && pendingDuplicateItems.length) {
+        // Deep clone items and give them new ids
+        t.items = pendingDuplicateItems.map(i => ({ ...i, id: uid('item') }));
+      }
+
       trips.unshift(t);
       currentTripId = t.id;
       saveTrips();
       render();
 
+      // Clear pending duplicate state and close modal
+      pendingDuplicateItems = null;
       addHolidayModal.classList.add('hidden');
       document.body.classList.remove('overlay-blur');
 
@@ -564,40 +578,34 @@
       localStorage.setItem(OVERLAY_DISMISSED_KEY, 'true');
     });
 
-    /* DUPLICATE HOLIDAY */
+    /* DUPLICATE HOLIDAY (now opens modal like Add Holiday and copies packing list only) */
     duplicateTripBtn.addEventListener('click', () => {
       const trip = getCurrentTrip();
       if(!trip) return;
 
-      const suggested = trip.name + ' (copy)';
-      const newName = prompt('Name for duplicated holiday', suggested);
-      if(newName === null) return;
+      // Prepare a copy of items only (deep clone, but keep category/name/qty/etc)
+      const itemsCopy = trip.items.map(i => ({ ...i, id: uid('item') }));
 
-      const copy = JSON.parse(JSON.stringify(trip));
-      copy.id = uid('trip');
-      copy.name = (newName.trim() || suggested);
-      copy.createdAt = nowISO();
-      copy.items = copy.items.map(i => ({ ...i, id: uid('item') }));
+      // Store items in pendingDuplicateItems so the Add Holiday modal can use them
+      pendingDuplicateItems = itemsCopy;
 
-      // Reset the date so user can choose a new one
-      copy.date = null;
+      // Pre-fill modal fields: leave date empty (user must choose), suggest a name
+      modalHolidayName.value = `${trip.name} (copy)`;
+      modalHolidayDate.value = '';
 
-      trips.unshift(copy);
-      currentTripId = copy.id;
-      saveTrips();
-      render();
-      renderHolidaySelect();
+      // Open the same modal used for adding holidays
+      addHolidayModal.classList.remove('hidden');
+      document.body.classList.add('overlay-blur');
 
-      // Show the trip-meta area (was hidden) and focus the date input so user can pick a date immediately
-      if (tripMeta) {
-        tripMeta.style.display = '';
-      }
+      // Ensure the modal's inputs are visible/focused
       setTimeout(() => {
-        try { tripDateInput.focus(); } catch(e) {}
+        try {
+          modalHolidayName.focus();
+        } catch (e) {}
       }, 50);
     });
 
-    /* SAVE HOLIDAY */
+    /* SAVE HOLIDAY (existing save button) */
     saveTripBtn.addEventListener('click', () => {
       const trip = getCurrentTrip();
       if(!trip) return;
