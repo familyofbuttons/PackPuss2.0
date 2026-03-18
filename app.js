@@ -14,6 +14,7 @@
 
     const tripNameInput = $('tripName');
     const tripDateInput = $('tripDate');
+    const tripMeta = document.querySelector('.trip-meta');
 
     const addCategoryLeft = $('addCategoryLeft');
     const newCategoryInput = $('newCategoryInput');
@@ -586,6 +587,14 @@
       saveTrips();
       render();
       renderHolidaySelect();
+
+      // Show the trip-meta area (was hidden) and focus the date input so user can pick a date immediately
+      if (tripMeta) {
+        tripMeta.style.display = '';
+      }
+      setTimeout(() => {
+        try { tripDateInput.focus(); } catch(e) {}
+      }, 50);
     });
 
     /* SAVE HOLIDAY */
