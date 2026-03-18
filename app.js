@@ -700,7 +700,8 @@
 
   /* SERVICE WORKER */
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
+ navigator.serviceWorker.register('/PackPuss2.0/service-worker.js')
+
       .catch(() => {});
   }
 
