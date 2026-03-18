@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>PackPuss — Holiday Packing</title>
+
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- iOS PWA support -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <meta name="theme-color" content="#2563eb">
+
+  <!-- Fonts: Pacifico (hero), Fredoka (titles), Nunito (pills), Inter (body) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Nunito:wght@700;800&family=Fredoka:wght@700&family=Pacifico&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">🐾</div>
+    <div>
+      <div class="app-title">PackPuss</div>
+      <div class="app-sub">Smart packing, made simple</div>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <select id="holidaySelect" class="pill select-holiday"></select>
+    <button id="newTripBtn" class="btn pill">New Holiday</button>
+    <button id="duplicateTripBtn" class="btn pill ghost">Duplicate</button>
+    <button id="viewListBtn" class="btn pill outline">View as one list</button>
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- Big inviting holiday title -->
+  <div class="holiday-hero">
+    <div id="heroHolidayName" class="hero-name">My Holiday</div>
+    <div id="heroHolidayDate" class="hero-date"></div>
+  </div>
+
+  <!-- Hidden trip meta (for saving name/date + progress + filters) -->
+  <div class="trip-meta" style="display:none;">
+    <input id="tripName" class="trip-input" placeholder="Holiday name">
+    <div class="meta-row">
+      <div class="meta-left">
+        <div class="date-label">Date</div>
+        <input id="tripDate" type="date" class="field small">
+      </div>
+
+      <div class="progress-wrap">
+        <div id="progressLabel" class="progress-label">0 / 0 packed</div>
+        <div class="progress">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <label class="filter-pill">
+          <input type="checkbox" id="filterHand"> Hand
+        </label>
+        <label class="filter-pill">
+          <input type="checkbox" id="filterHold"> Hold
+        </label>
+        <label class="filter-pill">
+          <input type="checkbox" id="filterUnpacked"> Unpacked
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories list -->
+  <div id="categories" class="categories"></div>
+
+  <!-- Add Category + Add Item (moved to bottom) -->
+  <div class="add-top">
+    <div class="add-row">
+      <input id="newCategoryInput" class="field small" placeholder="New category name">
+      <button id="addCategoryBtn" class="btn add-cat-green pill">Add Category</button>
+    </div>
+
+    <div class="add-row">
+      <select id="addCategoryLeft" class="pill select-cat-left"></select>
+      <input id="addName" class="field" placeholder="Item name">
+      <select id="addLuggage" class="pill">
+        <option value="hold">Hold</option>
+        <option value="hand">Hand</option>
+      </select>
+      <button id="addItemBtn" class="btn-primary pill">Add Item</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <button id="exportBtn" class="btn pill ghost">Export</button>
+    <button id="clearBtn" class="btn pill ghost">Clear Items</button>
+    <div class="spacer"></div>
+    <button id="deleteTripBtnFooter" class="btn-primary pill danger-like">Delete Holiday</button>
+    <button id="saveTripBtn" class="btn-primary pill">Save Holiday</button>
+  </div>
+
+</main>
+
+<!-- Countdown overlay -->
+<div id="countdownOverlay" class="overlay hidden">
+  <div class="overlay-card">
+    <div id="countdownText" class="countdown-text"></div>
+    <div id="countdownSub" class="countdown-sub muted"></div>
+    <div class="overlay-actions">
+      <button id="dismissOverlayBtn" class="btn-primary pill">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- One-list modal -->
+<div id="oneListModal" class="overlay hidden">
+  <div class="overlay-card" style="max-width:720px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-weight:900;font-size:18px;">Combined Packing List</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <label class="pill" style="padding:6px 10px;font-weight:700;">
+          <select id="oneListFilter" style="border:none;background:transparent;font-weight:700;">
+            <option value="all">All</option>
+            <option value="hand">Hand</option>
+            <option value="hold">Hold</option>
+          </select>
+        </label>
+        <button id="closeOneList" class="btn pill ghost">Close</button>
+      </div>
+    </div>
+
+    <div id="oneListContent" style="max-height:60vh;overflow:auto;display:flex;flex-direction:column;gap:8px;"></div>
+
+    <div style="display:flex;justify-content:center;margin-top:12px;">
+      <button id="closeOneListBottom" class="btn-primary pill">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Holiday modal -->
+<div id="addHolidayModal" class="overlay hidden">
+  <div class="overlay-card" style="max-width:420px;">
+    <div style="font-weight:900;font-size:18px;margin-bottom:8px;">Add a new holiday</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+      <input id="modalHolidayName" class="field" placeholder="Holiday name (e.g. Menorca)">
+      <input id="modalHolidayDate" type="date" class="field">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button id="addHolidayConfirm" class="btn-primary pill">Add Holiday</button>
+      <button id="addHolidayCancel" class="btn pill ghost">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Suggestions modal -->
+<div id="suggestionsModal" class="overlay hidden">
+  <div class="overlay-card" style="max-width:520px;">
+    <div id="suggestionsTitle" style="font-weight:900;font-size:18px;margin-bottom:8px;">Suggestions</div>
+    <div id="suggestionsList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:8px;justify-content:center;">
+      <button id="closeSuggestions" class="btn pill ghost">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Templates -->
+<template id="categoryTpl">
+  <div class="category">
+    <div class="cat-header">
+      <div class="cat-left">
+        <button class="cat-toggle">▾</button>
+        <div class="cat-title"></div>
+      </div>
+      <div class="cat-right">
+        <div class="cat-stats"></div>
+        <button class="cat-suggest btn pill ghost">Suggestions</button>
+        <button class="cat-add btn pill">Add</button>
+        <button class="cat-remove btn pill ghost">Remove</button>
+      </div>
+    </div>
+    <div class="cat-body"></div>
+  </div>
+</template>
+
+<template id="itemTpl">
+  <div class="item-row">
+    <div class="item-top">
+      <div class="item-left">
+        <input type="checkbox" class="item-packed">
+        <div class="item-name"></div>
+      </div>
+      <div class="item-right">
+        <select class="item-luggage">
+          <option value="hand">Hand</option>
+          <option value="hold">Hold</option>
+        </select>
+        <input type="number" class="item-qty" min="1" value="1">
+        <button class="item-remove icon-btn">✕</button>
+      </div>
+    </div>
+    <div class="item-notes" style="display:none;">
+      <textarea class="notes-field" placeholder="Notes..."></textarea>
+    </div>
+    <button class="notes-toggle btn pill ghost">Notes</button>
+  </div>
+</template>
+
+<script src="app.js"></script>
+
+</body>
+</html>
