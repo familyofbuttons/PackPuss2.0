@@ -5,20 +5,20 @@
    - Provide offline fallback for navigation
 */
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `packpuss-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `packpuss-runtime-${CACHE_VERSION}`;
 const IMAGE_CACHE = `packpuss-images-${CACHE_VERSION}`;
 
 const PRECACHE_URLS = [
-  '.',                // start_url
-  './index.html',
-  './style.css',
-  './app.js',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './offline.html'
+  '/PackPuss2.0/',
+  '/PackPuss2.0/index.html',
+  '/PackPuss2.0/style.css',
+  '/PackPuss2.0/app.js',
+  '/PackPuss2.0/manifest.json',
+  '/PackPuss2.0/icons/icon-192.png',
+  '/PackPuss2.0/icons/icon-512.png',
+  '/PackPuss2.0/offline.html'
 ];
 
 // Utility: limit cache size
@@ -42,7 +42,6 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     (async () => {
-      // Remove old caches
       const keys = await caches.keys();
       await Promise.all(
         keys.filter(k => ![CACHE_NAME, RUNTIME_CACHE, IMAGE_CACHE].includes(k))
@@ -56,25 +55,21 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const request = event.request;
 
-  // Navigation requests -> network first, fallback to cache/offline page
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then(response => {
-          // Put a copy in runtime cache
           const copy = response.clone();
           caches.open(RUNTIME_CACHE).then(cache => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match(request).then(r => r || caches.match('./offline.html')))
+        .catch(() => caches.match(request).then(r => r || caches.match('/PackPuss2.0/offline.html')))
     );
     return;
   }
 
-  // Static assets -> cache first
   const url = new URL(request.url);
 
-  // Images -> runtime cache with size limit
   if (request.destination === 'image' || /\.(png|jpg|jpeg|svg|gif)$/.test(url.pathname)) {
     event.respondWith(
       caches.open(IMAGE_CACHE).then(async cache => {
@@ -84,35 +79,30 @@ self.addEventListener('fetch', event => {
           const resp = await fetch(request);
           if (resp && resp.status === 200) {
             cache.put(request, resp.clone());
-            // keep images cache small
             trimCache(IMAGE_CACHE, 60);
           }
           return resp;
         } catch (err) {
-          return caches.match('./icons/icon-192.png');
+          return caches.match('/PackPuss2.0/icons/icon-192.png');
         }
       })
     );
     return;
   }
 
-  // Other requests -> cache first then network
   event.respondWith(
     caches.match(request).then(cached => {
       if (cached) return cached;
       return fetch(request).then(response => {
-        // Put in runtime cache for future
         return caches.open(RUNTIME_CACHE).then(cache => {
-          // Only cache GET and successful responses
           if (request.method === 'GET' && response && response.status === 200) {
             cache.put(request, response.clone());
           }
           return response;
         });
       }).catch(() => {
-        // If request is for a CSS/JS and offline, try to return cached shell
         if (request.destination === 'style' || request.destination === 'script') {
-          return caches.match('./index.html');
+          return caches.match('/PackPuss2.0/index.html');
         }
         return null;
       });
