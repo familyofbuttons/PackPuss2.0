@@ -6,19 +6,19 @@
   <title>PackPuss — Holiday Packing</title>
 
   <!-- Manifest -->
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/PackPuss2.0/manifest.json">
 
   <!-- Theme color -->
   <meta name="theme-color" content="#2563eb">
 
-  <!-- Favicon and PWA manifest (absolute paths for GitHub Pages root) -->
-  <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png">
-  <link rel="shortcut icon" href="/icons/icon-192.png" type="image/png">
+  <!-- Favicon -->
+  <link rel="icon" href="/PackPuss2.0/icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="shortcut icon" href="/PackPuss2.0/icons/icon-192.png" type="image/png">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Nunito:wght@700;800&family=Fredoka:wght@700&family=Pacifico&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="/PackPuss2.0/style.css">
 </head>
 <body>
 
@@ -41,13 +41,11 @@
 
 <main class="app">
 
-  <!-- Big inviting holiday title -->
   <div class="holiday-hero">
     <div id="heroHolidayName" class="hero-name">My Holiday</div>
     <div id="heroHolidayDate" class="hero-date"></div>
   </div>
 
-  <!-- Hidden trip meta (for saving name/date + progress + filters) -->
   <div class="trip-meta" style="display:none;">
     <input id="tripName" class="trip-input" placeholder="Holiday name">
     <div class="meta-row">
@@ -77,10 +75,8 @@
     </div>
   </div>
 
-  <!-- Categories list -->
   <div id="categories" class="categories"></div>
 
-  <!-- Add Category + Add Item (moved to bottom) -->
   <div class="add-top">
     <div class="add-row">
       <input id="newCategoryInput" class="field small" placeholder="New category name">
@@ -98,7 +94,6 @@
     </div>
   </div>
 
-  <!-- Footer -->
   <div class="footer">
     <button id="exportBtn" class="btn pill ghost">Export</button>
     <button id="clearBtn" class="btn pill ghost">Clear Items</button>
@@ -109,7 +104,6 @@
 
 </main>
 
-<!-- Countdown overlay -->
 <div id="countdownOverlay" class="overlay hidden">
   <div class="overlay-card">
     <div id="countdownText" class="countdown-text"></div>
@@ -120,7 +114,6 @@
   </div>
 </div>
 
-<!-- One-list modal -->
 <div id="oneListModal" class="overlay hidden">
   <div class="overlay-card" style="max-width:720px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -145,7 +138,6 @@
   </div>
 </div>
 
-<!-- Add Holiday modal -->
 <div id="addHolidayModal" class="overlay hidden">
   <div class="overlay-card" style="max-width:420px;">
     <div style="font-weight:900;font-size:18px;margin-bottom:8px;">Add a new holiday</div>
@@ -160,7 +152,6 @@
   </div>
 </div>
 
-<!-- Suggestions modal -->
 <div id="suggestionsModal" class="overlay hidden">
   <div class="overlay-card" style="max-width:520px;">
     <div id="suggestionsTitle" style="font-weight:900;font-size:18px;margin-bottom:8px;">Suggestions</div>
@@ -171,7 +162,6 @@
   </div>
 </div>
 
-<!-- Templates -->
 <template id="categoryTpl">
   <div class="category">
     <div class="cat-header">
@@ -213,7 +203,7 @@
   </div>
 </template>
 
-<script src="app.js"></script>
+<script src="/PackPuss2.0/app.js"></script>
 
 </body>
 </html>
